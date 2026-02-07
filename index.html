@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Antigone (Jean Anouilh) — Carte mentale interactive</title>
+
+  <style>
+    :root{
+      --bg:#0b0f0e;
+      --panel:#0f1514;
+      --node:#1b2624;
+      --node2:#15201e;
+      --accent:#5eead4;
+      --accent2:#34d399;
+      --text:#e6f5f1;
+      --muted:#98b7b0;
+      --line:rgba(94,234,212,0.22);
+      --shadow: 0 10px 30px rgba(0,0,0,0.55);
+      --radius:14px;
+    }
+
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(94,234,212,0.08), transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(52,211,153,0.06), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    header{
+      padding:18px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background: rgba(15,21,20,0.7);
+      backdrop-filter: blur(10px);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+
+    header h1{
+      margin:0;
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:0.3px;
+    }
+
+    header .sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .header-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    button{
+      cursor:pointer;
+      border:none;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:600;
+      font-size:13px;
+      background: rgba(94,234,212,0.10);
+      color: var(--accent);
+      transition:0.2s ease;
+    }
+
+    button:hover{
+      background: rgba(94,234,212,0.16);
+      transform: translateY(-1px);
+    }
+
+    button:active{
+      transform: translateY(0px);
+    }
+
+    .container{
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:16px;
+      padding:16px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .sidebar{
+      background: rgba(15,21,20,0.75);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+      height: calc(100vh - 110px);
+      position: sticky;
+      top: 86px;
+      overflow:auto;
+    }
+
+    .sidebar h2{
+      margin:0 0 10px 0;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-item{
+      display:block;
+      padding:10px 12px;
+      margin-bottom:8px;
+      border-radius:12px;
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      text-decoration:none;
+      font-size:13px;
+      border: 1px solid rgba(255,255,255,0.04);
+      transition:0.2s ease;
+    }
+
+    .nav-item:hover{
+      border-color: rgba(94,234,212,0.22);
+      background: rgba(94,234,212,0.06);
+    }
+
+    .content{
+      background: rgba(15,21,20,0.55);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding:16px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .mindmap{
+      padding:6px 6px 20px 6px;
+    }
+
+    .root{
+      background: linear-gradient(90deg, rgba(94,234,212,0.22), rgba(52,211,153,0.12));
+      border: 1px solid rgba(94,234,212,0.30);
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-weight:800;
+      font-size:16px;
+      margin-bottom:14px;
+      display:inline-block;
+    }
+
+    ul.tree{
+      list-style:none;
+      padding-left:20px;
+      margin:0;
+      position:relative;
+    }
+
+    ul.tree li{
+      margin:10px 0;
+      position:relative;
+      padding-left:18px;
+    }
+
+    ul.tree li::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:16px;
+      width:12px;
+      height:1px;
+      background: var(--line);
+    }
+
+    ul.tree::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:1px;
+      background: var(--line);
+    }
+
+    details{
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(27,38,36,0.55);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition:0.2s ease;
+    }
+
+    details[open]{
+      border-color: rgba(94,234,212,0.25);
+      background: rgba(27,38,36,0.72);
+    }
+
+    summary{
+      cursor:pointer;
+      padding: 12px 14px;
+      list-style:none;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      user-select:none;
+    }
+
+    summary::-webkit-details-marker{ display:none; }
+
+    .tag{
+      font-size:11px;
+      padding:5px 8px;
+      border-radius:999px;
+      background: rgba(94,234,212,0.10);
+      color: var(--accent);
+      border: 1px solid rgba(94,234,212,0.18);
+      font-weight:800;
+      letter-spacing:0.2px;
+    }
+
+    .inside{
+      padding: 0 14px 12px 14px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .inside ul{
+      margin:8px 0 0 0;
+      padding-left:18px;
+    }
+
+    .inside li{
+      margin:6px 0;
+    }
+
+    .leaf{
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(21,32,30,0.65);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size:13px;
+    }
+
+    .hint{
+      margin-top:10px;
+      color: rgba(152,183,176,0.85);
+      font-size:12px;
+      border-top:1px solid rgba(255,255,255,0.06);
+      padding-top:10px;
+    }
+
+    @media (max-width: 920px){
+      .container{
+        grid-template-columns: 1fr;
+      }
+      .sidebar{
+        position:relative;
+        top:auto;
+        height:auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>Antigone — Carte mentale interactive</h1>
+      <div class="sub">Jean Anouilh • Version web déployable • Clic = déplier/replier</div>
+    </div>
+
+    <div class="actions">
+      <button onclick="expandAll()">Tout ouvrir</button>
+      <button onclick="collapseAll()">Tout fermer</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <aside class="sidebar">
+      <h2>Navigation</h2>
+      <a class="nav-item" href="#personnages">Personnages principaux</a>
+      <a class="nav-item" href="#conflit">Le Conflit</a>
+      <a class="nav-item" href="#themes">Thèmes et Concepts</a>
+      <a class="nav-item" href="#denouement">Dénouement (Morts)</a>
+
+      <div class="hint">
+        Astuce : clique sur un bloc pour afficher ses détails.
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="mindmap">
+
+        <div class="root">Antigone (Jean Anouilh)</div>
+
+        <ul class="tree">
+
+          <!-- PERSONNAGES -->
+          <li id="personnages">
+            <details open>
+              <summary>
+                <span>Personnages principaux</span>
+                <span class="tag">4</span>
+              </summary>
+
+              <div class="inside">
+                <ul>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Antigone</span>
+                        <span class="tag">Profil</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Petite, maigre, noiraude</li>
+                          <li>Fille d’Œdipe</li>
+                          <li>Fiancée d’Hémon</li>
+                          <li>Choisit le devoir et la mort</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Créon</span>
+                        <span class="tag">Pouvoir</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Roi de Thèbes</li>
+                          <li>Oncle d’Antigone</li>
+                          <li>Homme fatigué et réaliste</li>
+                          <li>Défend l’ordre et le “Oui”</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Ismène</span>
+                        <span class="tag">Opposée</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Sœur ainée</li>
+                          <li>Belle, blonde, heureuse</li>
+                          <li>Refuse d’abord de désobéir</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Hémon</span>
+                        <span class="tag">Amour</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Fils de Créon</li>
+                          <li>Fiancé d’Antigone</li>
+                          <li>Se suicide par amour</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                </ul>
+              </div>
+            </details>
+          </li>
+
+          <!-- CONFLIT -->
+          <li id="conflit">
+            <details>
+              <summary>
+                <span>Le Conflit</span>
+                <span class="tag">3</span>
+              </summary>
+
+              <div class="inside">
+                <ul>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Les frères ennemis</span>
+                        <span class="tag">2</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Étéocle (funérailles grandioses)</li>
+                          <li>Polynice (privé de sépulture)</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>L’édit de Créon</span>
+                        <span class="tag">Loi</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Interdiction d’enterrer Polynice</li>
+                          <li>Peine de mort pour les contrevenants</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>L’acte d’Antigone</span>
+                        <span class="tag">Action</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Enterrement rituel au lever du jour</li>
+                          <li>Usage d’une pelle d’enfant puis des mains</li>
+                          <li>Arrestation par les gardes</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                </ul>
+              </div>
+            </details>
+          </li>
+
+          <!-- THEMES -->
+          <li id="themes">
+            <details>
+              <summary>
+                <span>Thèmes et Concepts</span>
+                <span class="tag">3</span>
+              </summary>
+
+              <div class="inside">
+                <ul>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>La Tragédie</span>
+                        <span class="tag">Définition</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Mécanisme gratuit et sans espoir</li>
+                          <li>Différente du drame</li>
+                          <li>Reposante et propre</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Opposition politique</span>
+                        <span class="tag">Non vs Oui</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Le “Non” d’Antigone (idéalisme)</li>
+                          <li>Le “Oui” de Créon (raison d’État)</li>
+                          <li>Le mépris du bonheur médiocre</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                  <li>
+                    <details>
+                      <summary>
+                        <span>Solitude</span>
+                        <span class="tag">Isolement</span>
+                      </summary>
+                      <div class="inside">
+                        <ul>
+                          <li>Antigone seule face au monde</li>
+                          <li>Créon seul après les morts</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+
+                </ul>
+              </div>
+            </details>
+          </li>
+
+          <!-- DENOUEMENT -->
+          <li id="denouement">
+            <details>
+              <summary>
+                <span>Dénouement (Morts)</span>
+                <span class="tag">4</span>
+              </summary>
+
+              <div class="inside">
+                <ul>
+                  <li class="leaf">Antigone (pendue dans la tombe)</li>
+                  <li class="leaf">Hémon (se poignarde)</li>
+                  <li class="leaf">Eurydice (se coupe la gorge)</li>
+                  <li class="leaf">Les gardes (continuent de jouer aux cartes)</li>
+                </ul>
+              </div>
+            </details>
+          </li>
+
+        </ul>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    function expandAll(){
+      document.querySelectorAll("details").forEach(d => d.open = true);
+    }
+
+    function collapseAll(){
+      document.querySelectorAll("details").forEach(d => d.open = false);
+      // On garde le root principal ouvert pour pas que ce soit vide
+      document.querySelector("#personnages details").open = true;
+    }
+  </script>
+
+</body>
+</html>
